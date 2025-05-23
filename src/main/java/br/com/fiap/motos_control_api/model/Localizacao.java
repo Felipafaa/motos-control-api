@@ -2,6 +2,8 @@ package br.com.fiap.motos_control_api.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,5 +34,6 @@ public class Localizacao {
 
     @OneToOne(optional = true)
     @JoinColumn(name = "moto_id")
+    @JsonBackReference
     private Moto moto;
 }

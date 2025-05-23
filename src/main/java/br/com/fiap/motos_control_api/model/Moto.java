@@ -1,6 +1,8 @@
 package br.com.fiap.motos_control_api.model;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +39,8 @@ public class Moto {
     @Builder.Default
     private boolean ativa = true;
 
-    @OneToOne(mappedBy = "moto", cascade = CascadeType.ALL)
-    private Localizacao localizacoes;
+    @OneToOne(mappedBy = "moto", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JsonManagedReference
+    private Localizacao localizacao;
 
 }

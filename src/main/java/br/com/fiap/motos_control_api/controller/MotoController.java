@@ -40,7 +40,7 @@ public class MotoController {
     public ResponseEntity<Page<Moto>> findAll(
             @RequestParam(defaultValue = "") String modelo,
             @PageableDefault(size = 10, sort = "modelo") Pageable pageable) {
-        return ResponseEntity.ok(motoRepository.findByModeloContainingIgnoreCase(modelo, pageable));
+        return ResponseEntity.ok(motoRepository.findAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -60,7 +60,7 @@ public class MotoController {
         if (dto.getLocalizacao() != null) {
             Localizacao localizacao = dto.getLocalizacao();
             localizacao.setMoto(moto);
-            moto.setLocalizacoes(localizacao);
+            moto.setLocalizacao(localizacao);
         }
 
         return ResponseEntity.ok(motoRepository.save(moto));
@@ -87,7 +87,7 @@ public class MotoController {
         Localizacao localizacao = localizacaoRepository.findById(idLocalizacao)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Localização não encontrada"));
 
-        moto.setLocalizacoes(localizacao);
+        moto.setLocalizacao(localizacao);
 
         return ResponseEntity.ok(motoRepository.save(moto));
     }

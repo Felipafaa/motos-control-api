@@ -22,6 +22,7 @@ import br.com.fiap.motos_control_api.model.Localizacao;
 import br.com.fiap.motos_control_api.model.Moto;
 import br.com.fiap.motos_control_api.repository.LocalizacaoRepository;
 import br.com.fiap.motos_control_api.repository.MotoRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -48,18 +49,91 @@ public class LocalizacaoController {
 
     @PostMapping
     @CacheEvict(value = "localizacoes", allEntries = true)
-    public ResponseEntity<Localizacao> criar(@RequestBody LocalizacaoDTO localizacaoDTO) {
+    public ResponseEntity<Localizacao> criar(@Valid @RequestBody LocalizacaoDTO localizacaoDTO) {
         Localizacao localizacao = new Localizacao();
         localizacao.setZona(localizacaoDTO.getZona());
 
-        if (localizacaoDTO.getMoto() != null && localizacaoDTO.getMoto().getId() != null) {
-            Moto moto = motoRepository.findById(localizacaoDTO.getMoto().getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada"));
-            localizacao.setMoto(moto);
+        if (localizacaoDTO.getMoto() != null) {
+            if (localizacaoDTO.getMoto().getId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "ID da Moto é obrigatório para associação e não pode ser nulo quando o objeto Moto é fornecido.");
+            }
+            Long motoId = localizacaoDTO.getMoto().getId();
+            Moto motoExistente = motoRepository.findById(motoId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Moto com ID " + motoId + " não encontrada para associar à localização."));
+
+            if (motoExistente.getLocalizacao() != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Moto com ID " + motoId + " já possui uma localização associada (ID: "
+                                + motoExistente.getLocalizacao().getId()
+                                + "). Não é permitido alterar a localização da moto por esta operação.");
+            }
+
+            localizacao.setMoto(motoExistente);
+            motoExistente.setLocalizacao(localizacao);
         }
 
-        localizacaoRepository.save(localizacao);
-        return ResponseEntity.status(HttpStatus.CREATED).body(localizacao);
+        return ResponseEntity.status(HttpStatus.CREATED).body(localizacaoRepository.save(localizacao));
+    }
+
+    @PutMapping("/{id}")
+    @CacheEvict(value = "localizacoes", allEntries = true)
+    public ResponseEntity<Localizacao> update(@PathVariable Long id, @Valid @RequestBody LocalizacaoDTO dto) {
+        Localizacao localizacao = localizacaoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Localização não encontrada com ID: " + id));
+
+        localizacao.setZona(dto.getZona());
+
+        Moto motoAtualDaLocalizacao = localizacao.getMoto();
+        Moto motoParaAssociar = null; // Moto que DEVE estar associada no final (pode ser null se dto.getMoto() for
+                                      // null)
+
+        if (dto.getMoto() != null) {
+            if (dto.getMoto().getId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "ID da Moto é obrigatório para associação quando o objeto Moto é fornecido.");
+            }
+            Long idMotoDesejada = dto.getMoto().getId();
+            motoParaAssociar = motoRepository.findById(idMotoDesejada)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Moto com ID " + idMotoDesejada + " não encontrada para associar à localização."));
+
+            if (motoParaAssociar.getLocalizacao() != null
+                    && !motoParaAssociar.getLocalizacao().getId().equals(localizacao.getId())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Moto com ID " + motoParaAssociar.getId() + " já está associada a outra localização (ID: "
+                                + motoParaAssociar.getLocalizacao().getId() + ").");
+            }
+        }
+
+        // Lógica de desassociação e associação da Moto:
+
+        // 1. Desassociar a moto antiga, se ela existir e for diferente da nova moto
+        // desejada (ou se não houver nova moto desejada)
+        if (motoAtualDaLocalizacao != null &&
+                (motoParaAssociar == null || !motoAtualDaLocalizacao.getId().equals(motoParaAssociar.getId()))) {
+
+            motoAtualDaLocalizacao.setLocalizacao(null);
+            motoRepository.save(motoAtualDaLocalizacao);
+        }
+
+        // 2. Associar a nova moto (motoParaAssociar), se ela existir
+        if (motoParaAssociar != null) {
+            motoParaAssociar.setLocalizacao(localizacao); // Define esta localização na moto desejada
+            // Não é necessário salvar motoParaAssociar aqui se ela não mudou outros campos,
+            // pois o save da localizacao (abaixo) cuidará da FK.
+            // Porém, se a motoParaAssociar fosse uma entidade nova ou se precisasse
+            // atualizar seu estado (ex: version), salvaria.
+            // Para consistência com o desassociar, e para garantir que o estado da moto
+            // esteja atualizado:
+            motoRepository.save(motoParaAssociar);
+        }
+
+        localizacao.setMoto(motoParaAssociar);
+
+        return ResponseEntity.ok(localizacaoRepository.save(localizacao));
     }
 
     @PutMapping("/{idLocalizacao}/moto/{idMoto}")
@@ -69,22 +143,46 @@ public class LocalizacaoController {
             @PathVariable Long idMoto) {
 
         Localizacao localizacao = localizacaoRepository.findById(idLocalizacao)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Localização não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Localização não encontrada com ID: " + idLocalizacao));
 
-        Moto moto = motoRepository.findById(idMoto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada"));
+        Moto motoParaAssociar = motoRepository.findById(idMoto)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Moto não encontrada com ID: " + idMoto));
 
-        localizacao.setMoto(moto);
+        if (localizacao.getMoto() != null && !localizacao.getMoto().getId().equals(idMoto)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Localização com ID " + idLocalizacao
+                    + " já está associada a outra moto (ID: " + localizacao.getMoto().getId() + ").");
+        }
+
+        if (motoParaAssociar.getLocalizacao() != null
+                && !motoParaAssociar.getLocalizacao().getId().equals(idLocalizacao)) {
+            Localizacao localizacaoAntigaDaMoto = motoParaAssociar.getLocalizacao();
+            localizacaoAntigaDaMoto.setMoto(null);
+        }
+
+        localizacao.setMoto(motoParaAssociar);
+        motoParaAssociar.setLocalizacao(localizacao);
+
+        motoRepository.save(motoParaAssociar);
 
         return ResponseEntity.ok(localizacaoRepository.save(localizacao));
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "localizacoes", allEntries = true)
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!localizacaoRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+        Localizacao localizacao = localizacaoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Localização não encontrada com ID: " + id));
+
+        if (localizacao.getMoto() != null) {
+            Moto motoAssociada = localizacao.getMoto();
+            motoAssociada.setLocalizacao(null);
+            motoRepository.save(motoAssociada);
         }
-        localizacaoRepository.deleteById(id);
+
+        localizacaoRepository.delete(localizacao);
         return ResponseEntity.noContent().build();
     }
 }

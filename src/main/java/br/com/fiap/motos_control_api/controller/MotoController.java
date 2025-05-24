@@ -58,22 +58,70 @@ public class MotoController {
         moto.setPlaca(dto.getPlaca());
 
         if (dto.getLocalizacao() != null) {
-            Localizacao localizacao = dto.getLocalizacao();
-            localizacao.setMoto(moto);
-            moto.setLocalizacao(localizacao);
+            if (dto.getLocalizacao().getId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "ID da Localização é obrigatório para associação e não pode ser nulo quando o objeto Localizacao é fornecido.");
+            }
+            Long localizacaoId = dto.getLocalizacao().getId();
+            Localizacao localizacaoExistente = localizacaoRepository.findById(localizacaoId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Localização com ID " + localizacaoId + " não encontrada para associar à moto."));
+
+            if (localizacaoExistente.getMoto() != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Localização com ID " + localizacaoId
+                        + " já está associada a outra moto (ID: " + localizacaoExistente.getMoto().getId() + ").");
+            }
+
+            localizacaoExistente.setMoto(moto);
+            moto.setLocalizacao(localizacaoExistente);
         }
 
-        return ResponseEntity.ok(motoRepository.save(moto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(motoRepository.save(moto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Moto> update(@PathVariable Long id, @Valid @RequestBody MotoDTO dto) {
-        return motoRepository.findById(id).map(moto -> {
-            moto.setIdentificador(dto.getIdentificador());
-            moto.setModelo(dto.getModelo());
-            moto.setPlaca(dto.getPlaca());
-            return ResponseEntity.ok(motoRepository.save(moto));
-        }).orElse(ResponseEntity.notFound().build());
+        Moto moto = motoRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada com ID: " + id));
+
+        moto.setIdentificador(dto.getIdentificador());
+        moto.setModelo(dto.getModelo());
+        moto.setPlaca(dto.getPlaca());
+
+        Localizacao localizacaoAtualDaMoto = moto.getLocalizacao();
+
+        if (dto.getLocalizacao() != null) {
+            if (dto.getLocalizacao().getId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "ID da Localização é obrigatório para associação e não pode ser nulo quando o objeto Localizacao é fornecido.");
+            }
+            Long idLocalizacaoDesejada = dto.getLocalizacao().getId();
+            Localizacao localizacaoDesejada = localizacaoRepository.findById(idLocalizacaoDesejada)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Localização com ID " + idLocalizacaoDesejada + " não encontrada para associar à moto."));
+
+            if (localizacaoDesejada.getMoto() != null && !localizacaoDesejada.getMoto().getId().equals(moto.getId())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Localização com ID " + localizacaoDesejada.getId() + " já está associada a outra moto (ID: "
+                                + localizacaoDesejada.getMoto().getId() + ").");
+            }
+
+            if (localizacaoAtualDaMoto != null && !localizacaoAtualDaMoto.getId().equals(localizacaoDesejada.getId())) {
+                localizacaoAtualDaMoto.setMoto(null);
+            }
+
+            localizacaoDesejada.setMoto(moto);
+            moto.setLocalizacao(localizacaoDesejada);
+
+        } else {
+            if (localizacaoAtualDaMoto != null) {
+                localizacaoAtualDaMoto.setMoto(null);
+                moto.setLocalizacao(null);
+            }
+        }
+
+        return ResponseEntity.ok(motoRepository.save(moto));
     }
 
     @PutMapping("/{idMoto}/localizacao/{idLocalizacao}")
@@ -82,21 +130,42 @@ public class MotoController {
             @PathVariable Long idLocalizacao) {
 
         Moto moto = motoRepository.findById(idMoto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Moto não encontrada com ID: " + idMoto));
 
-        Localizacao localizacao = localizacaoRepository.findById(idLocalizacao)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Localização não encontrada"));
+        Localizacao localizacaoParaAssociar = localizacaoRepository.findById(idLocalizacao)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Localização não encontrada com ID: " + idLocalizacao));
 
-        moto.setLocalizacao(localizacao);
+        if (localizacaoParaAssociar.getMoto() != null && !localizacaoParaAssociar.getMoto().getId().equals(idMoto)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Localização com ID " + idLocalizacao
+                    + " já está associada a outra moto (ID: " + localizacaoParaAssociar.getMoto().getId() + ").");
+        }
+
+        Localizacao localizacaoAtualDaMoto = moto.getLocalizacao();
+        
+        if (localizacaoAtualDaMoto != null && !localizacaoAtualDaMoto.getId().equals(idLocalizacao)) {
+            localizacaoAtualDaMoto.setMoto(null);
+        }
+
+        moto.setLocalizacao(localizacaoParaAssociar);
+        localizacaoParaAssociar.setMoto(moto);
 
         return ResponseEntity.ok(motoRepository.save(moto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!motoRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+        Moto moto = motoRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada com ID: " + id));
+
+        if (moto.getLocalizacao() != null) {
+            Localizacao localizacao = moto.getLocalizacao();
+            localizacao.setMoto(null);
+            localizacaoRepository.save(localizacao);
         }
+
         motoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

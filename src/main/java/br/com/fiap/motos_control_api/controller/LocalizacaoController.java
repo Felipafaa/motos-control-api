@@ -87,8 +87,7 @@ public class LocalizacaoController {
         localizacao.setZona(dto.getZona());
 
         Moto motoAtualDaLocalizacao = localizacao.getMoto();
-        Moto motoParaAssociar = null; // Moto que DEVE estar associada no final (pode ser null se dto.getMoto() for
-                                      // null)
+        Moto motoParaAssociar = null;
 
         if (dto.getMoto() != null) {
             if (dto.getMoto().getId() == null) {
@@ -108,10 +107,6 @@ public class LocalizacaoController {
             }
         }
 
-        // Lógica de desassociação e associação da Moto:
-
-        // 1. Desassociar a moto antiga, se ela existir e for diferente da nova moto
-        // desejada (ou se não houver nova moto desejada)
         if (motoAtualDaLocalizacao != null &&
                 (motoParaAssociar == null || !motoAtualDaLocalizacao.getId().equals(motoParaAssociar.getId()))) {
 
@@ -119,15 +114,8 @@ public class LocalizacaoController {
             motoRepository.save(motoAtualDaLocalizacao);
         }
 
-        // 2. Associar a nova moto (motoParaAssociar), se ela existir
         if (motoParaAssociar != null) {
-            motoParaAssociar.setLocalizacao(localizacao); // Define esta localização na moto desejada
-            // Não é necessário salvar motoParaAssociar aqui se ela não mudou outros campos,
-            // pois o save da localizacao (abaixo) cuidará da FK.
-            // Porém, se a motoParaAssociar fosse uma entidade nova ou se precisasse
-            // atualizar seu estado (ex: version), salvaria.
-            // Para consistência com o desassociar, e para garantir que o estado da moto
-            // esteja atualizado:
+            motoParaAssociar.setLocalizacao(localizacao);
             motoRepository.save(motoParaAssociar);
         }
 

@@ -91,3 +91,38 @@ A API expõe os seguintes endpoints principais:
     * Corpo da Requisição: `LocalizacaoDTO`
 * `DELETE /api/localizacoes/{id}`: Remove uma localização.
 * `PUT /api/localizacoes/{idLocalizacao}/moto/{idMoto}`: Associa uma moto existente a uma localização.
+
+
+## Execução com Docker
+
+🚀 Como rodar a aplicação via Docker na VM
+1. Acesse a VM via SSH:
+
+ssh azureuser@IP_DA_VM
+
+2. Instale o Docker (caso ainda não tenha instalado):
+
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker azureuser
+exit
+
+Depois, reconecte à VM:
+
+ssh azureuser@IP_DA_VM
+
+3. Baixe a imagem do Docker Hub (se já enviada):
+
+docker pull pedrosouza/motos-api
+
+Ou copie o .jar e o Dockerfile para a VM e construa a imagem diretamente com:
+
+
+docker build -t motos-api .
+
+4. Execute o container:
+
+docker run -d -p 8080:8080 motos-api
+
+5. Acesse a API via Swagger UI:
+
+http://IP_DA_VM:8080/swagger-ui.html

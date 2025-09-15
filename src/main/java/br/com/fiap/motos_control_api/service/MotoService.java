@@ -157,4 +157,21 @@ public class MotoService {
 
         return motoRepository.save(moto);
     }
+
+    public Moto enviarParaManutencao(Long idMoto) {
+        Moto moto = findById(idMoto);
+
+        if (moto.getLocalizacao() != null) {
+            desassociarLocalizacao(idMoto);
+        }
+
+        moto.setAtiva(false);
+        return motoRepository.save(moto);
+    }
+
+    public Moto finalizarManutencao(Long idMoto) {
+        Moto moto = findById(idMoto);
+        moto.setAtiva(true);
+        return motoRepository.save(moto);
+    }
 }

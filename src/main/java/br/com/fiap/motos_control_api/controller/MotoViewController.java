@@ -105,4 +105,28 @@ public class MotoViewController {
         }
         return "redirect:/motos";
     }
+
+    // Endpoint para enviar a moto para manutenção
+    @GetMapping("/{id}/manutencao/iniciar")
+    public String iniciarManutencao(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            motoService.enviarParaManutencao(id);
+            redirectAttributes.addFlashAttribute("message", "Moto enviada para manutenção.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erro ao enviar para manutenção: " + e.getMessage());
+        }
+        return "redirect:/motos";
+    }
+
+    // Endpoint para finalizar a manutenção da moto
+    @GetMapping("/{id}/manutencao/finalizar")
+    public String finalizarManutencao(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            motoService.finalizarManutencao(id);
+            redirectAttributes.addFlashAttribute("message", "Manutenção finalizada. A moto está ativa novamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erro ao finalizar manutenção: " + e.getMessage());
+        }
+        return "redirect:/motos";
+    }
 }

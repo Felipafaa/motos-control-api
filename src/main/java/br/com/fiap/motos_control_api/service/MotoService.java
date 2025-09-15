@@ -141,4 +141,20 @@ public class MotoService {
 
         motoRepository.deleteById(id);
     }
+
+    public Moto desassociarLocalizacao(Long idMoto) {
+        Moto moto = findById(idMoto);
+
+        if (moto.getLocalizacao() != null) {
+            Localizacao localizacao = moto.getLocalizacao();
+            localizacao.setMoto(null);
+            moto.setLocalizacao(null);
+            localizacaoRepository.save(localizacao);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Esta moto não possui uma localização associada.");
+        }
+
+        return motoRepository.save(moto);
+    }
 }

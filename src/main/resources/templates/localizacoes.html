@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{fragments/_layout}">
+
+<head>
+    <title>Lista de Localizações</title>
+</head>
+
+<body>
+    <section layout:fragment="content">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Localizações Cadastradas</h2>
+            <a href="/localizacoes/new" class="btn btn-primary">Adicionar Localização</a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Zona</th>
+                        <th>Status</th>
+                        <th>Moto (Placa)</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="loc : ${localizacoes}" class="hover">
+                        <td th:text="${loc.zona}"></td>
+                        <td>
+                            <span th:if="${loc.moto == null}"
+                                class="badge badge-success badge-outline">Disponível</span>
+                            <span th:if="${loc.moto != null}" class="badge badge-error badge-outline">Ocupada</span>
+                        </td>
+                        <td th:text="${loc.moto != null} ? ${loc.moto.placa} : '-'"></td>
+                        <td class="space-x-2">
+                            <a th:if="${loc.moto == null}" sec:authorize="hasRole('ADMIN')"
+                                th:href="@{/localizacoes/delete/{id}(id=${loc.id})}"
+                                class="btn btn-sm btn-error">Excluir</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</body>
+
+</html>

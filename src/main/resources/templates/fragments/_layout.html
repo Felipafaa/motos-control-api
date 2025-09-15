@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html data-theme="dark" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <title>Motos Control</title>
+</head>
+
+<body class="bg-base-200">
+
+    <div th:fragment="header" class="navbar bg-base-100 shadow-lg mb-4">
+        <div class="flex-1">
+            <a th:href="@{/motos}" class="btn btn-ghost normal-case text-xl">Motos Control</a>
+        </div>
+        <div class="flex-none">
+            <ul class="menu menu-horizontal px-1">
+                <li><a th:href="@{/motos}">Motos</a></li>
+                <li><a th:href="@{/localizacoes}">Localizações</a></li>
+            </ul>
+            <div sec:authorize="isAuthenticated()" class="ml-4">
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-error">Sair</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-4">
+        <div layout:fragment="content" class="bg-base-100 p-6 rounded-lg shadow-md">
+        </div>
+    </main>
+
+</body>
+
+</html>

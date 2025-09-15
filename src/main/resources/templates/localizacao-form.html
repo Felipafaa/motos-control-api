@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{fragments/_layout}">
+
+<head>
+    <title>Formulário de Localização</title>
+</head>
+
+<body>
+    <section layout:fragment="content">
+        <h2 class="text-2xl font-bold mb-4">Cadastrar Nova Localização</h2>
+
+        <form th:action="@{/localizacoes/save}" th:object="${localizacao}" method="post" class="max-w-lg">
+            <div class="form-control w-full mb-4">
+                <label class="label" for="zona">
+                    <span class="label-text">Nome da Zona</span>
+                </label>
+                <input type="text" id="zona" placeholder="Ex: A-01, B-12, etc." th:field="*{zona}"
+                    class="input input-bordered w-full" />
+                <label class="label" th:if="${#fields.hasErrors('zona')}">
+                    <span class="label-text-alt text-error" th:errors="*{zona}"></span>
+                </label>
+            </div>
+
+            <div class="mt-6 flex gap-2">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="/localizacoes" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</body>
+
+</html>

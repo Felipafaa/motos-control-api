@@ -3,6 +3,7 @@ package br.com.fiap.motos_control_api.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -68,6 +69,7 @@ public class MotoViewController {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteMoto(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         motoService.delete(id);
         redirectAttributes.addFlashAttribute("message", "Moto removida com sucesso!");
@@ -108,6 +110,7 @@ public class MotoViewController {
 
     // Endpoint para enviar a moto para manutenção
     @GetMapping("/{id}/manutencao/iniciar")
+    @PreAuthorize("hasRole('ADMIN')")
     public String iniciarManutencao(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             motoService.enviarParaManutencao(id);

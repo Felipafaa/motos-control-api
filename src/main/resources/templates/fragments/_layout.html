@@ -22,7 +22,8 @@
                 <li><a th:href="@{/motos}">Motos</a></li>
                 <li><a th:href="@{/localizacoes}">Localizações</a></li>
             </ul>
-            <div sec:authorize="isAuthenticated()" class="ml-4">
+            <div sec:authorize="isAuthenticated()" class="ml-4 flex items-center">
+                <span class="mr-4">Olá, <span th:text="${#authentication.principal.attributes['name']}"></span></span>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="btn btn-error">Sair</button>
                 </form>

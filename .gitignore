@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Ignorar o ficheiro com as variáveis de ambiente
+.env

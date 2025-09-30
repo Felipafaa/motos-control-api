@@ -31,7 +31,7 @@ public class Localizacao {
     @Builder.Default
     private LocalDateTime dataHora = LocalDateTime.now();
 
-    // --- CORREÇÕES AQUI ---
+   
     @OneToOne(mappedBy = "localizacao")
     @JsonBackReference
     private Moto moto;

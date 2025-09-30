@@ -40,7 +40,7 @@ public class Moto {
     @Builder.Default
     private boolean ativa = true;
 
-    // --- CORREÇÕES AQUI ---
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "localizacao_id", referencedColumnName = "id")
     @JsonManagedReference

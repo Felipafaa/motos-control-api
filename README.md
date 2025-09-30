@@ -2,26 +2,26 @@
 
 API REST para gerenciamento e controle de motocicletas e suas localizações no pátio. Este projeto foi desenvolvido como parte do Challenge de DevOps Tools & Cloud Computing da FIAP.
 
-## [cite_start]Descrição da Solução [cite: 17]
+## Descrição da Solução
 
 Esta API fornece endpoints para realizar operações CRUD (Criar, Ler, Atualizar e Deletar) em entidades de `Moto` e `Localizacao`. A aplicação é construída em Java com Spring Boot e utiliza Flyway para gerenciamento do schema do banco de dados.
 
-## [cite_start]Benefícios para o Negócio [cite: 19]
+## Benefícios para o Negócio 
 
 A solução centraliza e automatiza o controle de ativos (motocicletas), permitindo um gerenciamento mais eficiente do pátio. Isso resulta em:
 * **Otimização do Tempo:** Reduz o tempo necessário para localizar e gerenciar o status de cada veículo.
 * **Redução de Erros:** Automatiza processos que antes eram manuais, diminuindo a chance de erros humanos.
 * **Centralização da Informação:** Fornece um ponto único de verdade sobre a localização e o estado de todas as motos.
 
-## [cite_start]Arquitetura da Solução na Nuvem [cite: 46]
+## Arquitetura da Solução na Nuvem 
 
 A aplicação foi implantada na Microsoft Azure seguindo o modelo de **Contêineres como Serviço (CaaS)**, utilizando os seguintes recursos:
 
 1.  **Código-Fonte:** Versionado no GitHub.
 2.  **Imagem Docker:** A aplicação é empacotada em uma imagem Docker. O build é feito na máquina local do desenvolvedor.
-3.  [cite_start]**Azure Container Registry (ACR):** A imagem Docker é enviada para o ACR, um registro de contêiner privado e seguro na Azure. [cite: 8]
+3.  **Azure Container Registry (ACR):** A imagem Docker é enviada para o ACR, um registro de contêiner privado e seguro na Azure. [cite: 8]
 4.  **Azure Container Instances (ACI):** O ACI executa a imagem Docker a partir do ACR, expondo a API para a internet. [cite_start]O ACI é uma solução PaaS para rodar contêineres sem gerenciar servidores. [cite: 8]
-5.  [cite_start]**Azure Database for PostgreSQL:** Um serviço de banco de dados gerenciado (PaaS) que armazena os dados da aplicação de forma persistente e segura. [cite: 6, 20]
+5.  **Azure Database for PostgreSQL:** Um serviço de banco de dados gerenciado (PaaS) que armazena os dados da aplicação de forma persistente e segura. [cite: 6, 20]
 
 O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `Run no ACI`.
 
@@ -33,7 +33,7 @@ O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `R
 
 ---
 
-## [cite_start]Passo a Passo para o Deploy na Azure (ACR + ACI) [cite: 52]
+## Passo a Passo para o Deploy na Azure (ACR + ACI) 
 
 Este guia descreve o processo completo para implantar a aplicação do zero na Azure.
 
@@ -158,7 +158,7 @@ az container create \
 
 ---
 
-## [cite_start]Como Testar a API (Exemplos `curl`) [cite: 48]
+## Como Testar a API (Exemplos `curl`) 
 
 Após o deploy, aguarde 2-3 minutos para a aplicação iniciar. A URL pública será exibida no final do comando `az container create`.
 
@@ -169,7 +169,7 @@ Substitua `<URL_DA_SUA_API>` pela URL pública do seu ACI (ex: `http://motos-api
 curl <URL_DA_SUA_API>/api/motos | jq .
 ```
 
-### [cite_start]Criar uma Nova Moto (POST) [cite: 48]
+### Criar uma Nova Moto (POST) 
 ```bash
 curl -X POST <URL_DA_SUA_API>/api/motos \
 -H "Content-Type: application/json" \

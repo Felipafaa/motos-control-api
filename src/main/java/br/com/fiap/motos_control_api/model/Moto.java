@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -39,7 +40,9 @@ public class Moto {
     @Builder.Default
     private boolean ativa = true;
 
-    @OneToOne(mappedBy = "moto", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    // --- CORREÇÕES AQUI ---
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "localizacao_id", referencedColumnName = "id")
     @JsonManagedReference
     private Localizacao localizacao;
 

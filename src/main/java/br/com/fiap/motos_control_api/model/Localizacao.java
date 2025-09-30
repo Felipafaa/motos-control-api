@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -32,8 +31,8 @@ public class Localizacao {
     @Builder.Default
     private LocalDateTime dataHora = LocalDateTime.now();
 
-    @OneToOne(optional = true)
-    @JoinColumn(name = "moto_id")
+    // --- CORREÇÕES AQUI ---
+    @OneToOne(mappedBy = "localizacao")
     @JsonBackReference
     private Moto moto;
 }

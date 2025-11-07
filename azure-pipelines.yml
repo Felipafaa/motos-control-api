@@ -48,7 +48,7 @@ stages:
         jdkVersionOption: $(javaVersion)
         jdkArchitectureOption: 'x64'
         goals: 'test'
-        options: '-Dspring.datasource.url=$(SPRING_DATASOURCE_URL) -Dspring.datasource.username=$(SPRING_DATASOURCE_USERNAME) -Dspring.datasource.password=$(SPRING_DATASOURCE_PASSWORD)'
+        options: '-Dspring.datasource.url=jdbc:h2:mem:testdb -Dspring.datasource.driverClassName=org.h2.Driver -Dspring.datasource.username=sa -Dspring.datasource.password= -Dspring.jpa.database-platform=org.hibernate.dialect.H2Dialect -Dspring.flyway.enabled=false'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
       env:

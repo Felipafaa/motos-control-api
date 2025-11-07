@@ -1,4 +1,4 @@
-# 1. Gatilho (Requisito 7-II: disparar na branch main)
+
 trigger:
 - main
 

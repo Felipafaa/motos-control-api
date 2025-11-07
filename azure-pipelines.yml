@@ -91,13 +91,12 @@ stages:
   - job: Deploy
     displayName: 'Deploy to Web App'
     steps:
-    - task: AzureWebApp@1
+    - task: AzureWebAppContainer@1
       displayName: 'Deploy App to Azure Web App for Containers'
       inputs:
-        azureSubscription: 'devops' # VERIFIQUE SE O NOME É ESSE MESMO
+        azureSubscription: 'devops'
         appName: $(webAppName)
         resourceGroupName: $(resourceGroupName)
-        appType: 'webAppContainer'
         imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'
         appSettings: |
           -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)"

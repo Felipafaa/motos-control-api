@@ -1,8 +1,8 @@
- #1. Gatilho (Requisito 7-II: disparar na branch master)
+# 1. Gatilho (Requisito 7-II: disparar na branch main)
 trigger:
 - main
 
-# 2. Variáveis (ESTRUTURA CORRIGIDA)
+# 2. Variáveis
 variables:
 # 3. Importa o grupo de variáveis secretas (Requisito 7-IV)
 - group: sprint4-creds
@@ -40,7 +40,6 @@ stages:
     steps:
     
     # Etapa de Testes (Requisito 7-VI)
-    # Etapa de Testes (Requisito 7-VI)
     - task: Maven@3
       displayName: 'Run Maven Tests'
       inputs:
@@ -48,10 +47,10 @@ stages:
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: $(javaVersion)
         jdkArchitectureOption: 'x64'
-        goals: 'test' 
+        goals: 'test'
+        options: '-Dspring.datasource.url=$(SPRING_DATASOURCE_URL) -Dspring.datasource.username=$(SPRING_DATASOURCE_USERNAME) -Dspring.datasource.password=$(SPRING_DATASOURCE_PASSWORD)'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      # ADICIONE ESTE BLOCO 'ENV' PARA ALIMENTAR OS TESTES
       env:
         SPRING_DATASOURCE_URL: $(SPRING_DATASOURCE_URL)
         SPRING_DATASOURCE_USERNAME: $(SPRING_DATASOURCE_USERNAME)
@@ -92,18 +91,14 @@ stages:
   - job: Deploy
     displayName: 'Deploy to Web App'
     steps:
-    
-    
     - task: AzureWebApp@1
       displayName: 'Deploy App to Azure Web App for Containers'
       inputs:
-        azureSubscription: 'devops'
+        azureSubscription: 'devops' # VERIFIQUE SE O NOME É ESSE MESMO
         appName: $(webAppName)
         resourceGroupName: $(resourceGroupName)
         appType: 'webAppContainer'
-        containerRegistry: '$(acrName).azurecr.io'
-        imageName: '$(imageRepository)'
-        imageTag: '$(tag)'
+        imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'
         appSettings: |
           -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)"
           -SPRING_DATASOURCE_USERNAME "$(SPRING_DATASOURCE_USERNAME)"

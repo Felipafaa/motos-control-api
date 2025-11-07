@@ -1,8 +1,9 @@
-# Estágio 1: Build da aplicação com Maven
+# Estágio 1: Build da aplicação com Maven (Rodando os testes)
 FROM maven:3.9.4-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
-RUN mvn -B -DskipTests package
+# Corrigido: Removido -DskipTests para rodar os testes
+RUN mvn -B package
 
 # Estágio 2: Imagem final, leve e segura
 FROM eclipse-temurin:17-jre-jammy

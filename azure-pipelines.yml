@@ -95,8 +95,5 @@ stages:
         appName: $(webAppName)
         resourceGroupName: $(resourceGroupName)
         imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'
-        appSettings: |
-          -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)"
-          -SPRING_DATASOURCE_USERNAME "$(SPRING_DATASOURCE_USERNAME)"
-          -SPRING_DATASOURCE_PASSWORD "$(SPRING_DATASOURCE_PASSWORD)"
-          -WEBSITES_PORT 8080
+        # CORREÇÃO: Linha única para evitar erros de parsing das variáveis
+        appSettings: -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)" -SPRING_DATASOURCE_USERNAME "$(SPRING_DATASOURCE_USERNAME)" -SPRING_DATASOURCE_PASSWORD "$(SPRING_DATASOURCE_PASSWORD)" -WEBSITES_PORT 8080

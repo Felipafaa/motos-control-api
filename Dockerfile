@@ -2,8 +2,9 @@
 FROM maven:3.9.4-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
-# Corrigido: Removido -DskipTests para rodar os testes
-RUN mvn -B -DskipTests package
+
+# Corrigido: Pulando os testes (eles já rodaram na pipeline)
+RUN mvn -B -Dmaven.test.skip=true package
 
 # Estágio 2: Imagem final, leve e segura
 FROM eclipse-temurin:17-jre-jammy

@@ -15,3 +15,6 @@ EXPOSE 8080
 
 USER appuser
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+
+#oi

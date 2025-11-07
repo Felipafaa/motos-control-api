@@ -1,0 +1,99 @@
+# 1. Gatilho (Requisito 7-II: disparar na branch master)
+trigger:
+- master
+
+# 2. Variáveis
+variables:
+  # Informações do Projeto
+  javaVersion: '17'
+  mavenPOMFile: 'pom.xml'
+
+  # Informações do Azure (COM SEUS NOMES)
+  resourceGroupName: 'rg-challenge'
+  webAppName: 'nomeunicowebapp'
+
+  # Informações do Docker (COM SEUS NOMES)
+  dockerRegistryServiceConnection: 'AzureContainerRegistryConnection'
+  acrName: 'devopsfepile'
+  imageRepository: 'motos-control-api'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+# 3. Importa o grupo de variáveis secretas (Requisito 7-IV)
+variables:
+- group: sprint4-creds
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+# 4. Estágios (CI e CD)
+stages:
+- stage: Build_CI # Estágio de CI
+  displayName: 'CI: Build, Test & Push Image'
+  jobs:
+  - job: BuildAndTest
+    displayName: 'Build, Test, Publish Artifacts & Push Docker Image'
+    steps:
+
+    # Etapa de Testes (Requisito 7-VI)
+    - task: Maven@3
+      displayName: 'Run Maven Tests'
+      inputs:
+        mavenPOMFile: $(mavenPOMFile)
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: $(javaVersion)
+        jdkArchitectureOption: 'x64'
+        goals: 'test' 
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    # Etapa de Build e Push do Docker (Requisito 7-VII)
+    - task: Docker@2
+      displayName: 'Build and push Docker image to ACR'
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+          latest
+
+    # Etapa de Publicação do Artefato (Requisito 7-V)
+    - task: CopyFiles@2
+      displayName: 'Copy JAR to Artifact Staging'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/target'
+        Contents: '*.jar'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish JAR Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'jar-artifact'
+        publishLocation: 'Container'
+
+- stage: Deploy_CD # Estágio de CD
+  displayName: 'CD: Deploy to Azure Web App'
+  dependsOn: Build_CI
+  condition: succeeded() # (Requisito 7-III: disparar após artefato)
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy to Web App'
+    steps:
+    - task: AzureWebAppForContainer@1
+      displayName: 'Deploy App to Azure Web App for Containers'
+      inputs:
+        # Conexão de Serviço do Azure (Requisito 7-VII)
+        azureSubscription: 'AzureResourceManagerConnection' 
+        appName: $(webAppName)
+        resourceGroupName: $(resourceGroupName)
+        imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'
+
+        # Injeta as variáveis de ambiente no Web App (Requisito 7-IV)
+        appSettings: |
+          -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)"
+          -SPRING_DATASOURCE_USERNAME "$(SPRING_DATASOURCE_USERNAME)"
+          -SPRING_DATASOURCE_PASSWORD "$(SPRING_DATASOURCE_PASSWORD)"
+          -WEBSITES_PORT 8080

@@ -40,6 +40,7 @@ stages:
     steps:
     
     # Etapa de Testes (Requisito 7-VI)
+    # Etapa de Testes (Requisito 7-VI)
     - task: Maven@3
       displayName: 'Run Maven Tests'
       inputs:
@@ -50,6 +51,11 @@ stages:
         goals: 'test' 
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      # ADICIONE ESTE BLOCO 'ENV' PARA ALIMENTAR OS TESTES
+      env:
+        SPRING_DATASOURCE_URL: $(SPRING_DATASOURCE_URL)
+        SPRING_DATASOURCE_USERNAME: $(SPRING_DATASOURCE_USERNAME)
+        SPRING_DATASOURCE_PASSWORD: $(SPRING_DATASOURCE_PASSWORD)
 
     # Etapa de Build e Push do Docker (Requisito 7-VII)
     - task: Docker@2

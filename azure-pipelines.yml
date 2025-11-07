@@ -1,4 +1,4 @@
-
+# 1. Gatilho (Requisito 7-II: disparar na branch main)
 trigger:
 - main
 
@@ -48,13 +48,10 @@ stages:
         jdkVersionOption: $(javaVersion)
         jdkArchitectureOption: 'x64'
         goals: 'test'
+        # Força o uso do H2 em memória para os testes passarem sempre
         options: '-Dspring.datasource.url=jdbc:h2:mem:testdb -Dspring.datasource.driverClassName=org.h2.Driver -Dspring.datasource.username=sa -Dspring.datasource.password= -Dspring.jpa.database-platform=org.hibernate.dialect.H2Dialect -Dspring.flyway.enabled=false'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      env:
-        SPRING_DATASOURCE_URL: $(SPRING_DATASOURCE_URL)
-        SPRING_DATASOURCE_USERNAME: $(SPRING_DATASOURCE_USERNAME)
-        SPRING_DATASOURCE_PASSWORD: $(SPRING_DATASOURCE_PASSWORD)
 
     # Etapa de Build e Push do Docker (Requisito 7-VII)
     - task: Docker@2
@@ -94,7 +91,7 @@ stages:
     - task: AzureWebAppContainer@1
       displayName: 'Deploy App to Azure Web App for Containers'
       inputs:
-        azureSubscription: 'devops'
+        azureSubscription: 'devops' # VERIFIQUE SE O NOME É ESTE MESMO!
         appName: $(webAppName)
         resourceGroupName: $(resourceGroupName)
         imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'

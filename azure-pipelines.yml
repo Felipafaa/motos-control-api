@@ -1,27 +1,31 @@
-# 1. Gatilho (Requisito 7-II: disparar na branch master)
+ #1. Gatilho (Requisito 7-II: disparar na branch master)
 trigger:
 - master
 
-# 2. Variáveis
+# 2. Variáveis (ESTRUTURA CORRIGIDA)
 variables:
-  # Informações do Projeto
-  javaVersion: '17'
-  mavenPOMFile: 'pom.xml'
-
-  # Informações do Azure (COM SEUS NOMES)
-  resourceGroupName: 'rg-challenge'
-  webAppName: 'nomeunicowebapp'
-
-  # Informações do Docker (COM SEUS NOMES)
-  dockerRegistryServiceConnection: 'AzureContainerRegistryConnection'
-  acrName: 'devopsfepile'
-  imageRepository: 'motos-control-api'
-  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
-
 # 3. Importa o grupo de variáveis secretas (Requisito 7-IV)
-variables:
 - group: sprint4-creds
+
+# Variáveis normais do pipeline
+- name: javaVersion
+  value: '17'
+- name: mavenPOMFile
+  value: 'pom.xml'
+- name: resourceGroupName
+  value: 'rg-challenge'
+- name: webAppName
+  value: 'nomeunicowebapp'
+- name: dockerRegistryServiceConnection
+  value: 'AzureContainerRegistryConnection'
+- name: acrName
+  value: 'devopsfepile'
+- name: imageRepository
+  value: 'motos-control-api'
+- name: dockerfilePath
+  value: '$(Build.SourcesDirectory)/Dockerfile'
+- name: tag
+  value: '$(Build.BuildId)'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -34,7 +38,7 @@ stages:
   - job: BuildAndTest
     displayName: 'Build, Test, Publish Artifacts & Push Docker Image'
     steps:
-
+    
     # Etapa de Testes (Requisito 7-VI)
     - task: Maven@3
       displayName: 'Run Maven Tests'
@@ -58,7 +62,7 @@ stages:
         tags: |
           $(tag)
           latest
-
+    
     # Etapa de Publicação do Artefato (Requisito 7-V)
     - task: CopyFiles@2
       displayName: 'Copy JAR to Artifact Staging'
@@ -66,7 +70,7 @@ stages:
         SourceFolder: '$(Build.SourcesDirectory)/target'
         Contents: '*.jar'
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
+    
     - task: PublishBuildArtifacts@1
       displayName: 'Publish JAR Artifact'
       inputs:
@@ -82,16 +86,18 @@ stages:
   - job: Deploy
     displayName: 'Deploy to Web App'
     steps:
-    - task: AzureWebAppForContainer@1
+    
+    
+    - task: AzureWebApp@1
       displayName: 'Deploy App to Azure Web App for Containers'
       inputs:
-        # Conexão de Serviço do Azure (Requisito 7-VII)
-        azureSubscription: 'AzureResourceManagerConnection' 
+        azureSubscription: 'devops'
         appName: $(webAppName)
         resourceGroupName: $(resourceGroupName)
-        imageName: '$(acrName).azurecr.io/$(imageRepository):$(tag)'
-
-        # Injeta as variáveis de ambiente no Web App (Requisito 7-IV)
+        appType: 'webAppContainer'
+        containerRegistry: '$(acrName).azurecr.io'
+        imageName: '$(imageRepository)'
+        imageTag: '$(tag)'
         appSettings: |
           -SPRING_DATASOURCE_URL "$(SPRING_DATASOURCE_URL)"
           -SPRING_DATASOURCE_USERNAME "$(SPRING_DATASOURCE_USERNAME)"

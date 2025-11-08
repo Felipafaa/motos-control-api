@@ -9,7 +9,7 @@ az group create --name rg-challenge --location brazilsouth
 az acr create --resource-group rg-challenge --name devopsfepile --sku Basic --admin-enabled true
 
 # 3. Criar Banco de Dados (ACI com PostgreSQL)
-az container create --resource-group rg-challenge --name meu-postgres-db --image postgres:14-alpine --ports 5432 --ip-address Public --os-type Linux --cpu 1 --memory 1.5Gi --environment-variables "POSTGRES_USER=USUARIOTOP" "POSTGRES_PASSWORD=SENHATOP" "POSTGRES_DB=motosdb"
+az container create --resource-group rg-challenge --name meu-postgres-db --image postgres:14-alpine --ports 5432 --ip-address Public --os-type Linux --cpu 1 --memory 1.5 --environment-variables "POSTGRES_USER=USUARIOTOP" "POSTGRES_PASSWORD=SENHATOP" "POSTGRES_DB=motosdb"
 
 # 4. Criar Plano de App Service
 az appservice plan create --name MeuPlanoAppService --resource-group rg-challenge --is-linux

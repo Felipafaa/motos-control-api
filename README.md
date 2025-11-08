@@ -1,194 +1,73 @@
-# API Motos Control
+# API Motos Control - Sprint 4 DevOps
 
-API REST para gerenciamento e controle de motocicletas e suas localizações no pátio. Este projeto foi desenvolvido como parte do Challenge de DevOps Tools & Cloud Computing da FIAP.
+API REST para gerenciamento e controle de motocicletas, desenvolvida como parte do Challenge de DevOps Tools & Cloud Computing da FIAP (Sprint 4).
 
 ## Descrição da Solução
 
-Esta API fornece endpoints para realizar operações CRUD (Criar, Ler, Atualizar e Deletar) em entidades de `Moto` e `Localizacao`. A aplicação é construída em Java com Spring Boot e utiliza Flyway para gerenciamento do schema do banco de dados.
+Esta solução consiste em uma **API REST desenvolvida em Java com Spring Boot** para o controle de motocicletas. A aplicação foi conteinerizada utilizando **Docker** e implantada na nuvem Azure através de um fluxo de CI/CD automatizado.
 
-## Benefícios para o Negócio 
+Os dados são persistidos em um banco de dados **PostgreSQL** rodando em um Azure Container Instance (ACI). Todo o processo de build, testes e deploy é orquestrado pelo **Azure DevOps Pipelines**, garantindo entrega contínua e confiável a cada alteração no código-fonte.
 
-A solução centraliza e automatiza o controle de ativos (motocicletas), permitindo um gerenciamento mais eficiente do pátio. Isso resulta em:
-* **Otimização do Tempo:** Reduz o tempo necessário para localizar e gerenciar o status de cada veículo.
-* **Redução de Erros:** Automatiza processos que antes eram manuais, diminuindo a chance de erros humanos.
-* **Centralização da Informação:** Fornece um ponto único de verdade sobre a localização e o estado de todas as motos.
+### Stack Tecnológica
+* **Linguagem:** Java 17
+* **Framework:** Spring Boot
+* **Banco de Dados:** PostgreSQL (em container ACI)
+* **Containerização:** Docker
+* **Nuvem:** Microsoft Azure (Web App for Containers, ACI, ACR)
+* **CI/CD:** Azure DevOps Pipelines
+* **SCM:** GitHub
 
-## Arquitetura da Solução na Nuvem 
+## Arquitetura da Solução
 
-A aplicação foi implantada na Microsoft Azure seguindo o modelo de **Contêineres como Serviço (CaaS)**, utilizando os seguintes recursos:
+O diagrama abaixo ilustra o fluxo de integração e entrega contínua (CI/CD) implementado:
 
-1.  **Código-Fonte:** Versionado no GitHub.
-2.  **Imagem Docker:** A aplicação é empacotada em uma imagem Docker. O build é feito na máquina local do desenvolvedor.
-3.  **Azure Container Registry (ACR):** A imagem Docker é enviada para o ACR, um registro de contêiner privado e seguro na Azure. [cite: 8]
-4.  **Azure Container Instances (ACI):** O ACI executa a imagem Docker a partir do ACR, expondo a API para a internet. [cite_start]O ACI é uma solução PaaS para rodar contêineres sem gerenciar servidores. [cite: 8]
-5.  **Azure Database for PostgreSQL:** Um serviço de banco de dados gerenciado (PaaS) que armazena os dados da aplicação de forma persistente e segura. [cite: 6, 20]
+![Diagrama da Arquitetura](arquitetura.png)
 
-O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `Run no ACI`.
+1.  **Push (Code):** O desenvolvedor envia o código para o repositório GitHub.
+2.  **Trigger Pipeline:** O Azure DevOps detecta a alteração e inicia a pipeline.
+3.  **Build & Push Image (CI):** A pipeline compila o código, roda os testes e envia a imagem Docker para o Azure Container Registry (ACR).
+4.  **Deploy (CD):** A pipeline atualiza o Azure Web App com a nova imagem.
+5.  **Pull Image:** O Web App baixa a imagem atualizada do ACR.
+6.  **Connect DB:** A aplicação conecta-se ao banco PostgreSQL rodando no ACI.
+7.  **Acesso:** O usuário final acessa a API via HTTPS.
+
+## Detalhamento dos Componentes
+
+| Componente | Tipo | Descrição Funcional | Tecnologia/Ferramenta |
+| :--- | :--- | :--- | :--- |
+| **API Motos** | Aplicação | API REST para gerenciamento de motos. | Java 17, Spring Boot |
+| **Repositório** | SCM | Armazena e versiona o código-fonte. | GitHub |
+| **Pipeline CI/CD** | Orquestrador | Automatiza build, testes e deploy. | Azure DevOps Pipelines |
+| **Container Registry** | Registro | Armazena as imagens Docker da aplicação. | Azure Container Registry (ACR) |
+| **Web App** | PaaS (Compute) | Hospeda e executa a aplicação conteinerizada. | Azure Web App for Containers |
+| **Banco de Dados** | Container (IaaS) | Armazena os dados da aplicação de forma persistente. | PostgreSQL em Azure Container Instance (ACI) |
+
+## Como Executar o Projeto (Infraestrutura)
+
+Para replicar este ambiente na Azure, você pode utilizar o script de provisionamento incluído neste repositório.
+
+### Pré-requisitos
+* [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) instalado e logado (`az login`).
+
+### Passo a Passo
+
+1.  Execute o script de criação da infraestrutura:
+    ```bash
+    ./deploy_infrastructure.sh
+    ```
+    *Este script criará o Grupo de Recursos, ACR, ACI (PostgreSQL) e o Plano de App Service.*
+
+2.  Após a execução, anote o **IP público** do banco de dados exibido no final do script.
+
+3.  No **Azure DevOps**, configure um Grupo de Variáveis (`Library`) com as seguintes chaves:
+    * `SPRING_DATASOURCE_URL`: `jdbc:postgresql://<IP_DO_BANCO>:5432/motosdb`
+    * `SPRING_DATASOURCE_USERNAME`: (Usuário definido no script)
+    * `SPRING_DATASOURCE_PASSWORD`: (Senha definida no script - **Use o cadeado para proteger!**)
+
+4.  Crie a pipeline utilizando o arquivo `azure-pipelines.yml` presente na raiz deste repositório.
 
 ## Autores
 
-* Pedro Henrique de Souza
-* Felipe Rosa Peres
-* Vinicius de Souza Sant Anna
-
----
-##oijoiojooobbjkj
-
-## Passo a Passo para o Deploy na Azure (ACR + ACI) 
-
-Este guia descreve o processo completo para implantar a aplicação do zero na Azure.
-
-### Pré-requisitos
-* [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) instalado.
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução.
-* Git instalado.
-
-### Fase 1: Criação da Infraestrutura (Azure Cloud Shell)
-
-Execute estes comandos no **Azure Cloud Shell** para provisionar todos os recursos necessários na nuvem.
-
-```bash
-# 1. DEFINA AS VARIÁVEIS
-SEU_RM="557636" # Use um identificador único
-RG_NAME="rg-motos-challenge-${SEU_RM}"
-ACR_NAME="acrmotoschallenge${SEU_RM}"
-PG_SERVER_NAME="pgmotoschallenge${SEU_RM}"
-DB_NAME="motosdb"
-LOCATION="brazilsouth"
-PG_PASSWORD="SUA_SENHA_FORTE_AQUI" # Escolha e anote uma senha forte
-
-# 2. REGISTRE OS PROVEDORES DE SERVIÇO
-az provider register --namespace Microsoft.ContainerRegistry
-az provider register --namespace Microsoft.DBforPostgreSQL
-az provider register --namespace Microsoft.ContainerInstance
-
-# 3. CRIE O GRUPO DE RECURSOS
-az group create --name $RG_NAME --location $LOCATION
-
-# 4. CRIE O AZURE CONTAINER REGISTRY (ACR)
-az acr create --resource-group $RG_NAME --name $ACR_NAME --sku Basic --admin-enabled true
-
-# 5. CRIE O BANCO DE DADOS POSTGRESQL
-# Cria o servidor
-az postgres flexible-server create \
-  --name $PG_SERVER_NAME \
-  --resource-group $RG_NAME \
-  --location $LOCATION \
-  --admin-user "pgadmin" \
-  --admin-password $PG_PASSWORD \
-  --tier Burstable \
-  --sku-name Standard_B1ms \
-  --version 14
-
-# Cria a base de dados
-az postgres flexible-server db create \
-  --resource-group $RG_NAME \
-  --server-name $PG_SERVER_NAME \
-  --database-name $DB_NAME
-  
-# Libera o acesso para serviços da Azure (incluindo o ACI)
-az postgres flexible-server firewall-rule create \
-  --resource-group $RG_NAME \
-  --name $PG_SERVER_NAME \
-  --rule-name AllowAzureServices \
-  --start-ip-address 0.0.0.0 \
-  --end-ip-address 0.0.0.0
-```
-
-### Fase 2: Build e Push da Imagem (Máquina Local)
-
-Execute estes comandos no terminal da **sua máquina local**, na raiz do projeto.
-
-```bash
-# 1. FAÇA LOGIN NO AZURE E NO ACR
-az login
-az acr login --name <NOME_DO_SEU_ACR> # Ex: acrmotoschallenge557636
-
-# 2. CONSTRUA E ENVIE A IMAGEM DOCKER
-# Use uma tag para a versão final, ex: v-final
-FINAL_IMAGE=<NOME_DO_SEU_ACR>.azurecr.io/motos-control-api:v-final
-
-# No CMD do Windows:
-set FINAL_IMAGE=%FINAL_IMAGE%
-docker build -t %FINAL_IMAGE% .
-docker push %FINAL_IMAGE%
-
-# No PowerShell ou Linux/Mac:
-export FINAL_IMAGE=$FINAL_IMAGE
-docker build -t $FINAL_IMAGE .
-docker push $FINAL_IMAGE
-```
-
-### Fase 3: Deploy do Contêiner (Azure Cloud Shell)
-
-Volte para o **Azure Cloud Shell** para executar o comando final de deploy.
-
-```bash
-# 1. REDEFINA AS VARIÁVEIS PARA GARANTIR
-SEU_RM="557636" # Use o mesmo identificador
-RG_NAME="rg-motos-challenge-${SEU_RM}"
-ACR_NAME="acrmotoschallenge${SEU_RM}"
-PG_SERVER_NAME="pgmotoschallenge${SEU_RM}"
-DB_NAME="motosdb"
-PG_PASSWORD="A_MESMA_SENHA_FORTE_QUE_VOCE_ESCOLHEU"
-
-# 2. OBTENHA AS CREDENCIAIS DO ACR
-ACR_USERNAME=$(az acr credential show -n $ACR_NAME --query username -o tsv)
-ACR_PASSWORD=$(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv)
-
-# 3. CRIE O AZURE CONTAINER INSTANCE (ACI)
-az container create \
-  --resource-group $RG_NAME \
-  --name motos-api-container \
-  --image ${ACR_NAME}.azurecr.io/motos-control-api:v-final \
-  --os-type Linux \
-  --cpu 1.5 --memory 3.0 \
-  --ports 8080 \
-  --dns-name-label motos-api-challenge-${SEU_RM} \
-  --registry-login-server ${ACR_NAME}.azurecr.io \
-  --registry-username $ACR_USERNAME \
-  --registry-password $ACR_PASSWORD \
-  --environment-variables \
-    'SPRING_DATASOURCE_URL'="jdbc:postgresql://${PG_SERVER_NAME}[.postgres.database.azure.com:5432/$](https://.postgres.database.azure.com:5432/$){DB_NAME}" \
-    'SPRING_DATASOURCE_USERNAME'='pgadmin' \
-    'SPRING_DATASOURCE_PASSWORD'=$PG_PASSWORD \
-    'SPRING_JPA_HIBERNATE_DDL_AUTO'='update' \
-    'SPRING_FLYWAY_BASELINE_ON_MIGRATE'='true' \
-    'APP_ADMIN_EMAILS'='admin@example.com'
-```
-
----
-
-## Como Testar a API (Exemplos `curl`) 
-
-Após o deploy, aguarde 2-3 minutos para a aplicação iniciar. A URL pública será exibida no final do comando `az container create`.
-
-Substitua `<URL_DA_SUA_API>` pela URL pública do seu ACI (ex: `http://motos-api-challenge-557636.brazilsouth.azurecontainer.io:8080`).
-
-### Listar Motos (GET)
-```bash
-curl <URL_DA_SUA_API>/api/motos | jq .
-```
-
-### Criar uma Nova Moto (POST) 
-```bash
-curl -X POST <URL_DA_SUA_API>/api/motos \
--H "Content-Type: application/json" \
--d '{
-    "identificador":"MOTO-999", 
-    "modelo":"Kawasaki Ninja", 
-    "placa":"NINJA01", 
-    "ativa":true, 
-    "localizacaoId":1
-}'
-```
-
-### Buscar Moto por ID (GET)
-```bash
-curl <URL_DA_SUA_API>/api/motos/1 | jq .
-```
-
-### Deletar Moto (DELETE)
-```bash
-curl -X DELETE <URL_DA_SUA_API>/api/motos/1
-```
+* **Pedro Henrique de Souza** - RM555533 - 2TDSPx
+* **Felipe Rosa Peres** - RM557636 - 2TDSPx
+* **Vinicius de Souza Sant Anna** - RM556841 - 2TDSPx

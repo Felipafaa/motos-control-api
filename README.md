@@ -32,7 +32,7 @@ O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `R
 * Vinicius de Souza Sant Anna
 
 ---
-##oi
+##oijoiojooobbjkj
 
 ## Passo a Passo para o Deploy na Azure (ACR + ACI) 
 

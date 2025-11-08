@@ -33,6 +33,8 @@ O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `R
 
 ---
 
+#oiii
+
 ## Passo a Passo para o Deploy na Azure (ACR + ACI) 
 
 Este guia descreve o processo completo para implantar a aplicação do zero na Azure.

@@ -33,8 +33,6 @@ O fluxo de deploy é: `Código Local` -> `Build Docker` -> `Push para ACR` -> `R
 
 ---
 
-#oiii
-#tcchau
 
 ## Passo a Passo para o Deploy na Azure (ACR + ACI) 
 

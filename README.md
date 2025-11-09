@@ -1,5 +1,8 @@
 # API Motos Control - Sprint 4 DevOps
 
+##Nota!!!!!!!!!!!!!!
+##Professor, ao corrigir e se deparar com a pipeline vermelha, ter em mente que o deploy deu erro pois os recursos do portal azure foram encerrados para evitar gastos, fica muito caro deixar rolando! :(.
+
 API REST para gerenciamento e controle de motocicletas, desenvolvida como parte do Challenge de DevOps Tools & Cloud Computing da FIAP (Sprint 4).
 
 ## Descrição da Solução

@@ -21,7 +21,7 @@ Os dados são persistidos em um banco de dados **PostgreSQL** rodando em um Azur
 
 O diagrama abaixo ilustra o fluxo de integração e entrega contínua (CI/CD) implementado:
 
-![Diagrama da Arquitetura](arquitetura.png)
+![Diagrama da Arquitetura](fepile.drawio.png)
 
 1.  **Push (Code):** O desenvolvedor envia o código para o repositório GitHub.
 2.  **Trigger Pipeline:** O Azure DevOps detecta a alteração e inicia a pipeline.
